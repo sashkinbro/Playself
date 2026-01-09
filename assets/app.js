@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
@@ -145,6 +145,7 @@ let canonicalById = new Map();
 
 let displayedGames = [], loadedCount = 0, modalGameId = null;
 let commentsUnsubscribe = null; // Змінна для відписки від коментарів
+let currentLimit = 20; // Ліміт коментарів
 let currentLang = 'uk', currentTab = 'all';
 const BATCH_SIZE = 30;
 
@@ -1016,20 +1017,10 @@ const commentEls = {
     btnSend: document.getElementById('btn-send-comment'),
     btnLoginMsg: document.getElementById('login-to-comment'),
     btnToggle: document.getElementById('btn-toggle-comments'),
-    myAvatar: document.getElementById('my-comment-avatar')
+    myAvatar: document.getElementById('my-comment-avatar'),
+    loadMoreWrap: document.getElementById('load-more-wrap'),
+    btnLoadMore: document.getElementById('btn-load-more')
 };
-
-// НОВИЙ КОД: Вхід при кліку на "Увійди, щоб коментувати"
-if (commentEls.btnLoginMsg) {
-    commentEls.btnLoginMsg.onclick = async () => {
-        try {
-            await signInWithPopup(auth, new GoogleAuthProvider());
-        } catch (e) {
-            console.error(e);
-            alert(i18n[currentLang].loginError);
-        }
-    };
-}
 
 // Відкрити/Закрити секцію
 if(commentEls.btnToggle) {
@@ -1037,11 +1028,32 @@ if(commentEls.btnToggle) {
         const isHidden = commentEls.wrap.classList.contains('hidden');
         if (isHidden) {
             commentEls.wrap.classList.remove('hidden');
+            currentLimit = 20; // Скидаємо ліміт при відкритті
             loadCommentsForGame(modalGameId);
             updateCommentFormState();
         } else {
             commentEls.wrap.classList.add('hidden');
             if (commentsUnsubscribe) commentsUnsubscribe(); // Зупиняємо слухач
+        }
+    };
+}
+
+// Кнопка "Завантажити ще"
+if (commentEls.btnLoadMore) {
+    commentEls.btnLoadMore.onclick = () => {
+        currentLimit += 20; // Збільшуємо ліміт
+        loadCommentsForGame(modalGameId); // Перезапускаємо з новим лімітом
+    };
+}
+
+// Вхід при кліку на "Увійди, щоб коментувати"
+if (commentEls.btnLoginMsg) {
+    commentEls.btnLoginMsg.onclick = async () => {
+        try {
+            await signInWithPopup(auth, new GoogleAuthProvider());
+        } catch (e) {
+            console.error(e);
+            alert(i18n[currentLang].loginError);
         }
     };
 }
@@ -1068,20 +1080,26 @@ function updateCommentFormState() {
 function loadCommentsForGame(gameId) {
     if (!gameId) return;
     const t = i18n[currentLang] || i18n.en;
-    commentEls.list.innerHTML = `<div class="text-center text-slate-500 py-4"><div class="loader-spinner w-6 h-6 border-2 mx-auto"></div></div>`;
+
+    // Якщо це перше завантаження (ліміт 20), показуємо спіннер
+    if (currentLimit === 20) {
+        commentEls.list.innerHTML = `<div class="text-center text-slate-500 py-4"><div class="loader-spinner w-6 h-6 border-2 mx-auto"></div></div>`;
+    }
 
     if (commentsUnsubscribe) commentsUnsubscribe(); // Скидаємо попередній слухач
 
     const q = query(
         collection(db, "comments"),
         where("gameId", "==", gameId),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
+        limit(currentLimit)
     );
 
     commentsUnsubscribe = onSnapshot(q, (snapshot) => {
         commentEls.list.innerHTML = '';
         if (snapshot.empty) {
             commentEls.list.innerHTML = `<div class="text-center text-slate-500 text-sm py-2">${t.noComments}</div>`;
+            if(commentEls.loadMoreWrap) commentEls.loadMoreWrap.classList.add('hidden');
             return;
         }
 
@@ -1106,6 +1124,16 @@ function loadCommentsForGame(gameId) {
             frag.appendChild(div);
         });
         commentEls.list.appendChild(frag);
+
+        // Логіка показу кнопки "Ще"
+        if (commentEls.loadMoreWrap) {
+            if (snapshot.docs.length < currentLimit) {
+                commentEls.loadMoreWrap.classList.add('hidden');
+            } else {
+                commentEls.loadMoreWrap.classList.remove('hidden');
+            }
+        }
+
     }, (error) => {
         console.error("Comments error:", error);
         commentEls.list.innerHTML = `<div class="text-red-500 text-xs text-center">Error loading comments.</div>`;

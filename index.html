@@ -205,6 +205,12 @@
                     <div id="comments-section" class="hidden mt-4 space-y-4">
                         <div id="comments-list" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2"></div>
                         
+                        <div id="load-more-wrap" class="hidden text-center pt-2">
+                            <button id="btn-load-more" class="text-xs text-accent hover:text-white hover:underline transition">
+                                Завантажити ще...
+                            </button>
+                        </div>
+
                         <div id="comment-form-wrap" class="hidden flex gap-2 items-start mt-4">
                             <img id="my-comment-avatar" src="" class="w-8 h-8 rounded-full border border-slate-600 shrink-0">
                             <div class="flex-1">
@@ -218,8 +224,8 @@
                         </div>
                 
                         <button id="login-to-comment" class="w-full hidden text-center text-xs text-slate-500 py-3 bg-slate-900/50 rounded-lg border border-slate-800/50 cursor-pointer hover:bg-slate-800 hover:text-white hover:border-accent transition select-none">
-    <i class="fa-brands fa-google mr-2"></i> <span data-i18n="loginToComment">Увійди, щоб залишити коментар</span>
-</button>
+                            <i class="fa-brands fa-google mr-2"></i> <span data-i18n="loginToComment">Увійди, щоб залишити коментар</span>
+                        </button>
                     </div>
                 </div>
 

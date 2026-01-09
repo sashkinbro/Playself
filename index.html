@@ -31,7 +31,11 @@
 <body class="bg-dark text-slate-200 min-h-screen pb-20 md:pb-0">
 
     <aside class="fixed top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col z-50">
-        <div class="p-6"><h1 class="text-3xl font-black text-white">Play<span class="text-accent">Self</span></h1></div>
+        <div class="p-6">
+            <a href="./">
+                <h1 class="text-3xl font-black text-white">Play<span class="text-accent">Self</span></h1>
+            </a>
+        </div>
         
         <div class="px-6 pb-4 border-b border-slate-800 mb-2">
             <button id="btn-login" class="w-full bg-slate-800 border border-slate-700 hover:border-accent text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
@@ -72,7 +76,7 @@
         
         <div class="px-6 py-4 border-t border-slate-800 text-center">
             <p class="text-[9px] text-slate-600 uppercase tracking-widest mb-1">Sashkin Apps 2026</p>
-            <a href="privacy.html" class="text-[10px] text-slate-500 hover:text-accent transition underline decoration-slate-800" data-i18n="footerPrivacy">Політика конфіденційності</a>
+            <a href="./privacy.html" class="text-[10px] text-slate-500 hover:text-accent transition underline decoration-slate-800" data-i18n="footerPrivacy">Політика конфіденційності</a>
         </div>
 
         <div class="p-4 border-t border-slate-800 flex justify-between">
@@ -86,7 +90,7 @@
         <header class="sticky top-0 z-40 bg-dark/95 backdrop-blur-md border-b border-slate-800 px-4 py-4 md:px-8 space-y-4 shadow-md">
             <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
                 <div class="flex w-full md:w-auto justify-between items-center md:hidden">
-                    <span class="text-2xl font-black text-white">Play<span class="text-accent">Self</span></span>
+                    <a href="./"><span class="text-2xl font-black text-white">Play<span class="text-accent">Self</span></span></a>
 
                     <div class="flex items-center gap-3">
                         <button id="mobile-login-btn" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden hover:border-accent transition">
@@ -270,12 +274,12 @@
 
                 <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-4 text-sm text-slate-400 space-y-2">
                     <div class="flex justify-between"><span data-i18n="steamLastSync">Остання синхронізація</span><span id="steamLastSyncValue">—</span></div>
-                    <div class="flex justify-between"><span data-i18n="steamGamesMatched">Зіставлено ігор</span><span id="steamMatchedValue">0</span></div>
-                    <div class="flex justify-between"><span data-i18n="steamTotalHours">Всього годин</span><span id="steamTotalHoursValue">0</span></div>
+                    <div class="flex justify-between"><span data-i18n=\"steamGamesMatched\">Зіставлено ігор</span><span id=\"steamMatchedValue\">0</span></div>
+                    <div class="flex justify-between"><span data-i18n=\"steamTotalHours\">Всього годин</span><span id=\"steamTotalHoursValue\">0</span></div>
                 </div>
 
                 <div class="text-xs text-slate-500">
-                    <span data-i18n="steamPrivacyNote">Примітка: дані беруться з Steam API через твій воркер. Досягнення/прогрес з’являться, коли додаси відповідні ендпоїнти.</span>
+                    <span data-i18n=\"steamPrivacyNote\">Примітка: дані беруться з Steam API через твій воркер. Досягнення/прогрес з’являться, коли додаси відповідні ендпоїнти.</span>
                 </div>
             </div>
         </div>

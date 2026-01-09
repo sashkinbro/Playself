@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
@@ -27,7 +27,6 @@ const i18n = {
         allSteam:"Всі ігри", steamSyncedOnly:"Steam", steamNotSyncedOnly:"Без Steam",
         steamSyncBtn:"Синхронізація Steam", steamSyncTitle:"Синхронізація Steam",
         
-        // ОНОВЛЕНО:
         steamIdLabel:"SteamID64", steamIdHint:"Введи SteamID64 (17 цифр). Збережеться у твоєму акаунті.",
         steamPrivacyNote: "Примітка: SteamID прив’язується до твого профілю. Ми використовуємо лише відкриті дані Steam.",
         
@@ -45,7 +44,14 @@ const i18n = {
         loadErrHint:"Перевір: назву файлу, шлях data/, та валідність JSON.",
         loginBtn: "Увійти через Google",
         logoutBtn: "Вийти з акаунту",
-        loginError: "Помилка входу"
+        loginError: "Помилка входу",
+
+        // COMMENTS
+        commentsBtn: "Коментарі",
+        loginToComment: "Увійди, щоб залишити коментар",
+        commentPlaceholder: "Напиши щось про гру...",
+        noComments: "Поки немає коментарів. Будь першим!",
+        sending: "Відправка..."
     },
     en: {
         navAll:"All Games", navFav:"Favorites", navBack:"Backlog", navComp:"Completed", navStats:"Stats",
@@ -55,7 +61,6 @@ const i18n = {
         allSteam:"All games", steamSyncedOnly:"Steam", steamNotSyncedOnly:"No Steam",
         steamSyncBtn:"Steam Sync", steamSyncTitle:"Steam Sync",
         
-        // ОНОВЛЕНО:
         steamIdLabel:"SteamID64", steamIdHint:"Enter SteamID64 (17 digits). Saved to your account.",
         steamPrivacyNote: "Note: SteamID is linked to your profile. We only use public data from Steam.",
         
@@ -73,7 +78,14 @@ const i18n = {
         loadErrHint:"Check: filename, data/ path, and valid JSON.",
         loginBtn: "Sign in with Google",
         logoutBtn: "Sign out",
-        loginError: "Login error"
+        loginError: "Login error",
+
+        // COMMENTS
+        commentsBtn: "Comments",
+        loginToComment: "Sign in to leave a comment",
+        commentPlaceholder: "Write something about the game...",
+        noComments: "No comments yet. Be the first!",
+        sending: "Sending..."
     },
     ru: {
         navAll:"Все игры", navFav:"Избранное", navBack:"Планирую", navComp:"Прошел", navStats:"Статистика",
@@ -83,7 +95,6 @@ const i18n = {
         allSteam:"Все игры", steamSyncedOnly:"Steam", steamNotSyncedOnly:"Без Steam",
         steamSyncBtn:"Синхронизация Steam", steamSyncTitle:"Синхронизация Steam",
         
-        // ОНОВЛЕНО:
         steamIdLabel:"SteamID64", steamIdHint:"Введи SteamID64 (17 цифр). Сохранится в твоем аккаунте.",
         steamPrivacyNote: "Примечание: SteamID привязывается к твоему профилю. Мы используем только открытые данные Steam.",
         
@@ -101,7 +112,14 @@ const i18n = {
         loadErrHint:"Проверь: имя файла, путь data/, валидность JSON.",
         loginBtn: "Войти через Google",
         logoutBtn: "Выйти из аккаунта",
-        loginError: "Ошибка входа"
+        loginError: "Ошибка входа",
+
+        // COMMENTS
+        commentsBtn: "Комментарии",
+        loginToComment: "Войди, чтобы оставить комментарий",
+        commentPlaceholder: "Напиши что-то об игре...",
+        noComments: "Пока нет комментариев. Будь первым!",
+        sending: "Отправка..."
     }
 };
 
@@ -126,6 +144,7 @@ let canonicalGames = [];
 let canonicalById = new Map();
 
 let displayedGames = [], loadedCount = 0, modalGameId = null;
+let commentsUnsubscribe = null; // Змінна для відписки від коментарів
 let currentLang = 'uk', currentTab = 'all';
 const BATCH_SIZE = 30;
 
@@ -413,6 +432,7 @@ window.setLang = (lang) => {
     try { localStorage.setItem('ps_lang', lang); } catch {}
     applyLanguage(lang);
     runFilter();
+    updateCommentFormState(); // Оновити тексти коментарів
 };
 
 function applyLanguage(lang) {
@@ -427,12 +447,9 @@ function applyLanguage(lang) {
 }
 
 function getLocalizedDesc(g) {
-    // Якщо опису немає — повертаємо стандартний текст "Немає опису"
     if (!g.description) {
         return (i18n[currentLang] || i18n.en).noDesc;
     }
-    
-    // Оскільки ми все оновили, опис — це завжди просто текст. Повертаємо його.
     return g.description;
 }
 
@@ -807,6 +824,11 @@ window.openModal = (g) => {
     else r.classList.add('hidden');
 
     updateModalButtons();
+
+    // Скидання коментарів при відкритті нової гри
+    if(commentEls.wrap) commentEls.wrap.classList.add('hidden');
+    if(commentsUnsubscribe) { commentsUnsubscribe(); commentsUnsubscribe = null; }
+
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 };
@@ -815,6 +837,9 @@ window.closeModal = (e,f) => {
     if(f || (e && e.target && e.target.id === 'modalOverlay')) {
         document.getElementById('modalOverlay').classList.add('hidden');
         document.body.style.overflow = '';
+        
+        // Зупинити слухач коментарів
+        if(commentsUnsubscribe) { commentsUnsubscribe(); commentsUnsubscribe = null; }
     }
 };
 
@@ -981,6 +1006,131 @@ function renderStats() {
     grid.appendChild(frag);
 }
 
+// --- LOGIC: COMMENTS ---
+
+const commentEls = {
+    wrap: document.getElementById('comments-section'),
+    list: document.getElementById('comments-list'),
+    form: document.getElementById('comment-form-wrap'),
+    input: document.getElementById('comment-input'),
+    btnSend: document.getElementById('btn-send-comment'),
+    btnLoginMsg: document.getElementById('login-to-comment'),
+    btnToggle: document.getElementById('btn-toggle-comments'),
+    myAvatar: document.getElementById('my-comment-avatar')
+};
+
+// Відкрити/Закрити секцію
+if(commentEls.btnToggle) {
+    commentEls.btnToggle.onclick = () => {
+        const isHidden = commentEls.wrap.classList.contains('hidden');
+        if (isHidden) {
+            commentEls.wrap.classList.remove('hidden');
+            loadCommentsForGame(modalGameId);
+            updateCommentFormState();
+        } else {
+            commentEls.wrap.classList.add('hidden');
+            if (commentsUnsubscribe) commentsUnsubscribe(); // Зупиняємо слухач
+        }
+    };
+}
+
+// Перевірка стану авторизації для форми
+function updateCommentFormState() {
+    if (!commentEls.form) return;
+    const t = i18n[currentLang] || i18n.en;
+    
+    if (currentUser) {
+        commentEls.form.classList.remove('hidden');
+        commentEls.form.classList.add('flex');
+        commentEls.btnLoginMsg.classList.add('hidden');
+        if(commentEls.myAvatar) commentEls.myAvatar.src = currentUser.photoURL;
+        if(commentEls.input) commentEls.input.placeholder = t.commentPlaceholder;
+    } else {
+        commentEls.form.classList.add('hidden');
+        commentEls.form.classList.remove('flex');
+        commentEls.btnLoginMsg.classList.remove('hidden');
+    }
+}
+
+// Завантаження коментарів (Live)
+function loadCommentsForGame(gameId) {
+    if (!gameId) return;
+    const t = i18n[currentLang] || i18n.en;
+    commentEls.list.innerHTML = `<div class="text-center text-slate-500 py-4"><div class="loader-spinner w-6 h-6 border-2 mx-auto"></div></div>`;
+
+    if (commentsUnsubscribe) commentsUnsubscribe(); // Скидаємо попередній слухач
+
+    const q = query(
+        collection(db, "comments"),
+        where("gameId", "==", gameId),
+        orderBy("createdAt", "desc")
+    );
+
+    commentsUnsubscribe = onSnapshot(q, (snapshot) => {
+        commentEls.list.innerHTML = '';
+        if (snapshot.empty) {
+            commentEls.list.innerHTML = `<div class="text-center text-slate-500 text-sm py-2">${t.noComments}</div>`;
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        snapshot.forEach(doc => {
+            const c = doc.data();
+            const dateObj = c.createdAt ? c.createdAt.toDate() : new Date();
+            const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const div = document.createElement('div');
+            div.className = "flex gap-3 items-start animate-fade-in"; // Можна додати анімацію
+            div.innerHTML = `
+                <img src="${c.userAvatar || 'https://placehold.co/50'}" class="w-8 h-8 rounded-full border border-slate-700 shrink-0 mt-1">
+                <div class="comment-bubble flex-1 min-w-0">
+                    <div class="comment-header">
+                        <span class="comment-author truncate pr-2">${c.userName}</span>
+                        <span class="comment-date whitespace-nowrap">${dateStr}</span>
+                    </div>
+                    <div class="comment-text break-words">${c.text}</div>
+                </div>
+            `;
+            frag.appendChild(div);
+        });
+        commentEls.list.appendChild(frag);
+    }, (error) => {
+        console.error("Comments error:", error);
+        commentEls.list.innerHTML = `<div class="text-red-500 text-xs text-center">Error loading comments.</div>`;
+    });
+}
+
+// Відправка коментаря
+if(commentEls.btnSend) {
+    commentEls.btnSend.onclick = async () => {
+        if (!currentUser || !modalGameId) return;
+        const text = commentEls.input.value.trim();
+        if (!text) return;
+
+        const originalBtnHtml = commentEls.btnSend.innerHTML;
+        commentEls.btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        commentEls.btnSend.disabled = true;
+
+        try {
+            await addDoc(collection(db, "comments"), {
+                gameId: modalGameId,
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'User',
+                userAvatar: currentUser.photoURL,
+                text: text,
+                createdAt: serverTimestamp()
+            });
+            commentEls.input.value = ''; // Очистити поле
+        } catch (e) {
+            console.error("Send error:", e);
+            alert("Error sending comment");
+        } finally {
+            commentEls.btnSend.innerHTML = originalBtnHtml;
+            commentEls.btnSend.disabled = false;
+        }
+    };
+}
+
 async function init() {
     applyLanguage(currentLang);
     if (els.loader) { els.loader.classList.remove('hidden'); els.loader.classList.add('flex'); }
@@ -1088,6 +1238,7 @@ async function init() {
         
         updateBadges();
         if(currentTab !== 'all') runFilter();
+        updateCommentFormState(); // Оновити коментарі при зміні стану входу
     });
 
     // --- 4. ЗАВАНТАЖЕННЯ ІГОР (СТАНДАРТНЕ) ---

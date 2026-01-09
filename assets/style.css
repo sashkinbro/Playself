@@ -78,3 +78,32 @@
   box-shadow: 0 0 0 1px rgba(51,65,85,.35);
 }
 @keyframes ps-spin { to { transform: rotate(360deg); } }
+
+/* Стилі для коментарів */
+.comment-bubble {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+}
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+.comment-author {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+.comment-date {
+    font-size: 0.65rem;
+    color: #475569;
+}
+.comment-text {
+    font-size: 0.875rem;
+    color: #e2e8f0;
+    line-height: 1.4;
+    white-space: pre-wrap; /* Зберігає переноси рядків */
+}
+

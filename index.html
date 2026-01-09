@@ -26,190 +26,239 @@
     </script>
     <link rel="stylesheet" href="assets/style.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
+    
 </head>
-<body class="bg-dark text-slate-200 selection:bg-accent/30 selection:text-white">
+<body class="bg-dark text-slate-200 min-h-screen pb-20 md:pb-0">
 
-    <div id="mainLoader" class="fixed inset-0 z-[100] bg-dark flex flex-col items-center justify-center space-y-4">
-        <div class="relative w-20 h-20">
-            <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-t-accent rounded-full animate-spin"></div>
+    <aside class="fixed top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col z-50">
+        <div class="p-6"><h1 class="text-3xl font-black text-white">Play<span class="text-accent">Self</span></h1></div>
+        
+        <div class="px-6 pb-4 border-b border-slate-800 mb-2">
+            <button id="btn-login" class="w-full bg-slate-800 border border-slate-700 hover:border-accent text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                <i class="fa-brands fa-google"></i> <span data-i18n="loginBtn">Увійти через Google</span>
+            </button>
+
+            <div id="user-section" class="hidden flex items-center gap-3 p-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                <img id="user-avatar" src="" class="w-8 h-8 rounded-full border border-slate-600">
+                <div class="overflow-hidden flex-1">
+                    <div id="user-name" class="text-xs font-bold text-white truncate" data-i18n="loading">Loading...</div>
+                    <button id="btn-logout" class="text-[10px] text-danger hover:underline" data-i18n="logoutBtn">Вийти з акаунту</button>
+                </div>
+            </div>
         </div>
-        <p class="text-slate-400 font-medium tracking-widest animate-pulse uppercase text-xs">Loading PlaySelf</p>
-    </div>
 
-    <div class="flex min-h-screen relative">
-        <aside class="hidden md:flex flex-col w-72 bg-slate-900/50 border-r border-slate-800 sticky top-0 h-screen">
-            <div class="p-8">
-                <div class="flex items-center space-x-3 mb-10 group cursor-default">
-                    <div class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:rotate-12 transition-transform">
-                        <i class="fa-solid fa-gamepad text-white text-xl"></i>
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <button onclick="switchTab('all')" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-left" data-tab="all">
+                <i class="fa-solid fa-gamepad w-6 text-center"></i> <span data-i18n="navAll">Всі ігри</span>
+            </button>
+            <div class="pt-6 pb-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="library">БІБЛІОТЕКА</div>
+            <button onclick="switchTab('favorite')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-800 text-left" data-tab="favorite">
+                <div class="flex items-center gap-3"><i class="fa-solid fa-heart text-danger w-6 text-center"></i> <span data-i18n="navFav">Улюблені</span></div>
+                <span id="count-fav" class="bg-slate-800 text-xs py-1 px-2 rounded-md">0</span>
+            </button>
+            <button onclick="switchTab('backlog')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-800 text-left" data-tab="backlog">
+                <div class="flex items-center gap-3"><i class="fa-solid fa-clock text-warning w-6 text-center"></i> <span data-i18n="navBack">Планую</span></div>
+                <span id="count-back" class="bg-slate-800 text-xs py-1 px-2 rounded-md">0</span>
+            </button>
+            <button onclick="switchTab('completed')" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-800 text-left" data-tab="completed">
+                <div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-success w-6 text-center"></i> <span data-i18n="navComp">Пройдено</span></div>
+                <span id="count-comp" class="bg-slate-800 text-xs py-1 px-2 rounded-md">0</span>
+            </button>
+
+            <button onclick="switchTab('stats')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-left" data-tab="stats">
+                <i class="fa-solid fa-chart-simple w-6 text-center"></i> <span data-i18n="navStats">Статистика</span>
+            </button>
+        </nav>
+        
+        <div class="px-6 py-4 border-t border-slate-800 text-center">
+            <p class="text-[9px] text-slate-600 uppercase tracking-widest mb-1">Sashkin Apps 2026</p>
+            <a href="privacy.html" class="text-[10px] text-slate-500 hover:text-accent transition underline decoration-slate-800" data-i18n="footerPrivacy">Політика конфіденційності</a>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 flex justify-between">
+            <button onclick="setLang('uk')" class="lang-btn text-xs font-bold uppercase p-2 hover:text-white text-accent">UKR</button>
+            <button onclick="setLang('en')" class="lang-btn text-xs font-bold uppercase p-2 hover:text-white text-slate-500">ENG</button>
+            <button onclick="setLang('ru')" class="lang-btn text-xs font-bold uppercase p-2 hover:text-white text-slate-500">RUS</button>
+        </div>
+    </aside>
+
+    <main class="md:ml-64 min-h-screen flex flex-col">
+        <header class="sticky top-0 z-40 bg-dark/95 backdrop-blur-md border-b border-slate-800 px-4 py-4 md:px-8 space-y-4 shadow-md">
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div class="flex w-full md:w-auto justify-between items-center md:hidden">
+                    <span class="text-2xl font-black text-white">Play<span class="text-accent">Self</span></span>
+
+                    <div class="flex items-center gap-3">
+                        <button id="mobile-login-btn" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden hover:border-accent transition">
+                            <i class="fa-regular fa-user text-slate-400 text-sm"></i>
+                            <img id="mobile-avatar" src="" class="w-full h-full object-cover hidden">
+                        </button>
+
+                        <select onchange="setLang(this.value)" id="mobileLang" class="mobile-lang-select">
+                            <option value="uk">UA</option>
+                            <option value="en">EN</option>
+                            <option value="ru">RU</option>
+                        </select>
                     </div>
-                    <h1 class="text-2xl font-black tracking-tighter text-white">PLAYSELF</h1>
                 </div>
 
-                <nav class="space-y-1">
-                    <button data-tab="all" class="nav-btn active w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group">
-                        <i class="fa-solid fa-layer-group text-lg opacity-70 group-hover:opacity-100"></i>
-                        <span class="font-semibold" data-i18n="navAll">Всі ігри</span>
+                <div class="relative w-full md:max-w-md group">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input type="text" id="searchInput" placeholder="..." class="w-full bg-slate-800/50 border border-slate-700 text-white rounded-full py-2.5 pl-12 pr-4 focus:outline-none focus:border-accent">
+                </div>
+
+                <div class="flex gap-2 w-[calc(100%+2rem)] md:w-auto overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+                    <button id="steamSyncBtn" class="shrink-0 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white hover:border-accent hover:bg-slate-800/80 transition flex items-center gap-2">
+                        <i class="fa-brands fa-steam-symbol text-accent"></i>
+                        <span data-i18n="steamSyncBtn">Синхронізація Steam</span>
                     </button>
-                    <button data-tab="favorite" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group">
-                        <i class="fa-solid fa-heart text-lg opacity-70 group-hover:opacity-100"></i>
-                        <span class="font-semibold" data-i18n="navFav">Улюблені</span>
-                        <span id="badge-favorite" class="ml-auto bg-slate-800 text-[10px] px-2 py-1 rounded-md">0</span>
-                    </button>
-                    <button data-tab="backlog" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group">
-                        <i class="fa-solid fa-clock text-lg opacity-70 group-hover:opacity-100"></i>
-                        <span class="font-semibold" data-i18n="navBack">Планую</span>
-                        <span id="badge-backlog" class="ml-auto bg-slate-800 text-[10px] px-2 py-1 rounded-md">0</span>
-                    </button>
-                    <button data-tab="completed" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group">
-                        <i class="fa-solid fa-circle-check text-lg opacity-70 group-hover:opacity-100"></i>
-                        <span class="font-semibold" data-i18n="navComp">Пройдено</span>
-                        <span id="badge-completed" class="ml-auto bg-slate-800 text-[10px] px-2 py-1 rounded-md">0</span>
-                    </button>
-                </nav>
+
+                    <select id="sortFilter" class="filter-select">
+                        <option value="rating_desc" data-i18n="sortRatingDesc">⭐ Рейтинг: більше → менше</option>
+                        <option value="rating_asc" data-i18n="sortRatingAsc">⭐ Рейтинг: менше → більше</option>
+                        <option value="year_desc" data-i18n="sortNew">📅 Нові</option>
+                        <option value="year_asc" data-i18n="sortOld">📅 Старі</option>
+                    </select>
+
+                    <select id="platformFilter" class="filter-select"><option value="all" data-i18n="allPlatforms">Всі платформи</option></select>
+                    <select id="yearFilter" class="filter-select"><option value="all" data-i18n="allYears">Всі роки</option></select>
+                    <select id="genreFilter" class="filter-select"><option value="all" data-i18n="allGenres">Всі жанри</option></select>
+
+                    <select id="steamFilter" class="filter-select">
+                        <option value="all" data-i18n="allSteam">Всі ігри</option>
+                        <option value="synced" data-i18n="steamSyncedOnly">Steam</option>
+                        <option value="not_synced" data-i18n="steamNotSyncedOnly">Без Steam</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-8 flex-1">
+            <div id="loader" class="hidden flex-col items-center justify-center py-24" aria-live="polite">
+                <div class="loader-spinner" role="status" aria-label="Loading"></div>
+                <span id="loadPercent" class="mt-4 text-accent font-bold text-xl font-mono">0%</span>
             </div>
 
-            <div class="mt-auto p-8 space-y-4">
-                <div id="userInfo" class="hidden animate-fade-in">
-                    <div class="flex items-center space-x-3 p-3 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                        <img id="userAvatar" src="" class="w-10 h-10 rounded-xl object-cover shadow-sm">
-                        <div class="flex-1 min-w-0">
-                            <p id="userName" class="text-sm font-bold text-white truncate"></p>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wider">Геймер</p>
+            <div id="statsView" class="hidden"></div>
+
+            <div id="gamesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-6"></div>
+
+            <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-slate-600">
+                <i class="fa-solid fa-ghost text-6xl mb-4 opacity-20"></i><p data-i18n="empty">Нічого не знайдено</p>
+            </div>
+
+            <div id="loadTrigger" class="h-20 w-full"></div>
+        </div>
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 flex justify-around items-center py-3 z-50 pb-safe">
+        <button onclick="switchTab('all')" class="mobile-nav-item active flex flex-col items-center gap-1 text-slate-500" data-tab="all"><i class="fa-solid fa-gamepad text-xl"></i><span class="text-[10px]" data-i18n="navAll">Ігри</span></button>
+        <button onclick="switchTab('favorite')" class="mobile-nav-item flex flex-col items-center gap-1 text-slate-500" data-tab="favorite">
+            <div class="relative"><i class="fa-solid fa-heart text-xl"></i><span id="mob-count-fav" class="absolute -top-1 -right-2 w-4 h-4 bg-danger text-[9px] text-white rounded-full hidden flex items-center justify-center">0</span></div><span class="text-[10px]" data-i18n="navFav">Топ</span>
+        </button>
+        <button onclick="switchTab('backlog')" class="mobile-nav-item flex flex-col items-center gap-1 text-slate-500" data-tab="backlog">
+            <div class="relative"><i class="fa-solid fa-clock text-xl"></i><span id="mob-count-back" class="absolute -top-1 -right-2 w-4 h-4 bg-warning text-[9px] text-black rounded-full hidden flex items-center justify-center">0</span></div><span class="text-[10px]" data-i18n="navBack">Плани</span>
+        </button>
+        <button onclick="switchTab('completed')" class="mobile-nav-item flex flex-col items-center gap-1 text-slate-500" data-tab="completed">
+            <div class="relative"><i class="fa-solid fa-circle-check text-xl"></i><span id="mob-count-comp" class="absolute -top-1 -right-2 w-4 h-4 bg-success text-[9px] text-white rounded-full hidden flex items-center justify-center">0</span></div><span class="text-[10px]" data-i18n="navComp">Фініш</span>
+        </button>
+
+        <button onclick="switchTab('stats')" class="mobile-nav-item flex flex-col items-center gap-1 text-slate-500" data-tab="stats">
+            <i class="fa-solid fa-chart-simple text-xl"></i><span class="text-[10px]" data-i18n="navStats">Стат</span>
+        </button>
+    </nav>
+
+    <div id="modalOverlay" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4" onclick="closeModal(event)">
+        <div class="bg-slate-900 w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col md:flex-row transform transition-all" id="modalContent">
+            <div class="relative w-full md:w-5/12 h-64 md:h-auto bg-black shrink-0">
+                <img id="m-img" src="" class="w-full h-full object-cover opacity-80">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
+                <div class="absolute bottom-6 left-0 w-full flex justify-center gap-4 px-4">
+                    <button id="btn-fav" onclick="toggleAction('favorite')" class="w-12 h-12 rounded-full border flex items-center justify-center text-xl transition"><i class="fa-regular fa-heart"></i></button>
+                    <button id="btn-back" onclick="toggleAction('backlog')" class="w-12 h-12 rounded-full border flex items-center justify-center text-xl transition"><i class="fa-regular fa-clock"></i></button>
+                    <button id="btn-comp" onclick="toggleAction('completed')" class="w-12 h-12 rounded-full border flex items-center justify-center text-xl transition"><i class="fa-regular fa-circle-check"></i></button>
+                </div>
+                <button onclick="closeModal(null, true)" class="absolute top-4 right-4 md:left-4 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <h2 id="m-title" class="text-2xl md:text-3xl font-black text-white"></h2>
+                    <div id="m-rating" class="hidden shrink-0 px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-accent font-bold"></div>
+                </div>
+
+                <div class="flex gap-4 text-sm text-slate-400 mb-6 font-mono">
+                    <span id="m-year"><i class="fa-regular fa-calendar"></i> <span></span></span>
+                    <span id="m-platform"><i class="fa-solid fa-desktop"></i> <span></span></span>
+                </div>
+
+                <div id="m-genres" class="flex flex-wrap gap-2 mb-6"></div>
+
+                <div id="m-editionsWrap" class="hidden mb-6">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" data-i18n="editionsTitle">Видання</h3>
+                    <div id="m-editions" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="about">Про гру</h3>
+                    <p id="m-desc" class="text-slate-300 text-sm md:text-base"></p>
+                </div>
+
+                <div class="mt-8 border-t border-slate-800 pt-6">
+                    <button id="btn-toggle-comments" class="w-full py-3 bg-slate-800/50 border border-slate-700 hover:border-accent rounded-xl text-sm font-bold text-slate-300 hover:text-white transition flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-comments"></i> <span data-i18n="commentsBtn">Коментарі</span>
+                    </button>
+                
+                    <div id="comments-section" class="hidden mt-4 space-y-4">
+                        <div id="comments-list" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2"></div>
+                        
+                        <div id="load-more-wrap" class="hidden text-center pt-2">
+                            <button id="btn-load-more" class="px-6 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-xs font-bold text-slate-400 hover:text-white hover:border-accent hover:bg-slate-800 transition shadow-lg" data-i18n="loadMoreBtn">
+    Завантажити ще...
+</button>
                         </div>
-                        <button id="logoutBtn" class="p-2 hover:text-danger transition-colors" title="Logout">
-                            <i class="fa-solid fa-right-from-bracket"></i>
+
+                        <div id="comment-form-wrap" class="hidden flex gap-2 items-start mt-4">
+                            <img id="my-comment-avatar" src="" class="w-8 h-8 rounded-full border border-slate-600 shrink-0">
+                            <div class="flex-1">
+                                <textarea id="comment-input" rows="2" class="w-full bg-slate-950/50 border border-slate-700 rounded-lg p-2 text-sm text-white focus:border-accent outline-none resize-none" placeholder="..."></textarea>
+                                <div class="flex justify-end mt-2">
+                                    <button id="btn-send-comment" class="bg-accent hover:bg-blue-600 text-white text-xs font-bold py-1.5 px-4 rounded-lg transition">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                
+                        <button id="login-to-comment" class="w-full hidden text-center text-xs text-slate-500 py-3 bg-slate-900/50 rounded-lg border border-slate-800/50 cursor-pointer hover:bg-slate-800 hover:text-white hover:border-accent transition select-none">
+                            <i class="fa-brands fa-google mr-2"></i> <span data-i18n="loginToComment">Увійди, щоб залишити коментар</span>
                         </button>
                     </div>
                 </div>
-                
-                <div id="loginSection">
-                    <button id="loginBtn" class="w-full bg-accent hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-accent/20 transition-all active:scale-95 flex items-center justify-center space-x-2">
-                        <i class="fa-brands fa-google text-lg"></i>
-                        <span data-i18n="loginBtn">Увійти</span>
-                    </button>
-                    <p class="text-[10px] text-slate-500 mt-2 text-center" data-i18n="loginDesc">Увійдіть, щоб синхронізувати бібліотеку та зберігати прогрес</p>
-                </div>
 
-                <div class="flex items-center justify-between px-2 pt-4 border-t border-slate-800">
-                    <div class="flex space-x-2">
-                        <button onclick="setLang('uk')" class="w-8 h-8 rounded-lg border border-slate-700 text-[10px] font-bold hover:bg-slate-800 transition">UA</button>
-                        <button onclick="setLang('en')" class="w-8 h-8 rounded-lg border border-slate-700 text-[10px] font-bold hover:bg-slate-800 transition">EN</button>
-                        <button onclick="setLang('ru')" class="w-8 h-8 rounded-lg border border-slate-700 text-[10px] font-bold hover:bg-slate-800 transition">RU</button>
-                    </div>
-                    <button id="steamSyncBtn" class="p-2 text-slate-400 hover:text-white transition" title="Steam Sync">
-                        <i class="fa-brands fa-steam text-xl"></i>
-                    </button>
-                </div>
-
-                <div class="text-center pt-2">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-widest">Developed by Sashkin Apps 2026</p>
-                    <a href="privacy.html" class="text-[10px] text-slate-500 hover:text-accent transition underline decoration-slate-800" data-i18n="footerPrivacy">Політика конфіденційності</a>
-                </div>
             </div>
-        </aside>
-
-        <main class="flex-1 min-w-0 pb-24 md:pb-0 h-screen overflow-y-auto custom-scrollbar">
-            <header class="md:hidden flex items-center justify-between p-4 sticky top-0 bg-dark/80 backdrop-blur-xl z-40 border-b border-slate-800">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                        <i class="fa-solid fa-gamepad text-white text-sm"></i>
-                    </div>
-                    <span class="font-black text-white tracking-tighter">PS</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div id="mobUserIcon" class="hidden">
-                        <img id="mobUserAvatar" src="" class="w-8 h-8 rounded-lg border border-slate-700 object-cover">
-                    </div>
-                    <button data-tab="all" class="mobile-nav-btn p-2 text-slate-400"><i class="fa-solid fa-house"></i></button>
-                    <button id="mobSteamBtn" class="p-2 text-slate-400"><i class="fa-brands fa-steam"></i></button>
-                </div>
-            </header>
-
-            <div class="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 id="tabTitle" class="text-3xl md:text-4xl font-black text-white tracking-tight uppercase" data-i18n="navAll">Всі ігри</h2>
-                        <p class="text-slate-500 text-sm mt-1" data-i18n="totalLabel">У твоїй колекції <span id="totalCount" class="text-accent font-bold">0</span> ігор</p>
-                    </div>
-
-                    <div class="relative group max-w-md w-full">
-                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-accent transition-colors"></i>
-                        <input type="text" id="searchInput" placeholder="Search games..." data-i18n-placeholder="searchPlaceholder"
-                            class="w-full bg-slate-900 border border-slate-800 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all">
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2" id="platformFilters">
-                    <button data-filter="all" class="filter-btn active px-5 py-2 rounded-xl text-sm font-bold border border-slate-800 transition-all duration-200" data-i18n="filterAll">Всі</button>
-                </div>
-
-                <div id="gameGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 animate-fade-in">
-                    </div>
-
-                <div id="sentinel" class="h-10"></div>
-                
-                <div class="md:hidden pt-8 pb-4 text-center border-t border-slate-800">
-                    <p class="text-[9px] text-slate-600 uppercase tracking-widest">Developed by Sashkin Apps 2026</p>
-                    <a href="privacy.html" class="text-[10px] text-slate-500 hover:text-accent transition underline decoration-slate-800" data-i18n="footerPrivacy">Політика конфіденційності</a>
-                </div>
-            </div>
-        </main>
-
-        <nav class="md:hidden fixed bottom-0 inset-x-0 bg-slate-900/90 backdrop-blur-2xl border-t border-slate-800 z-50 flex items-center justify-around p-2">
-            <button data-tab="favorite" class="mobile-nav-btn flex flex-col items-center p-2 text-slate-500 space-y-1">
-                <i class="fa-solid fa-heart text-xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-tighter" data-i18n="navFavShort">Улюб</span>
-            </button>
-            <button data-tab="backlog" class="mobile-nav-btn flex flex-col items-center p-2 text-slate-500 space-y-1">
-                <i class="fa-solid fa-clock text-xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-tighter" data-i18n="navBackShort">План</span>
-            </button>
-            <button data-tab="completed" class="mobile-nav-btn flex flex-col items-center p-2 text-slate-500 space-y-1">
-                <i class="fa-solid fa-circle-check text-xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-tighter" data-i18n="navCompShort">Пройд</span>
-            </button>
-            <button id="mobLoginBtn" class="flex flex-col items-center p-2 text-slate-500 space-y-1">
-                <i class="fa-solid fa-user text-xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-tighter" data-i18n="navUserShort">Акк</span>
-            </button>
-        </nav>
-    </div>
-
-    <div id="gameModal" class="fixed inset-0 z-[60] hidden opacity-0 transition-opacity duration-300">
-        <div class="absolute inset-0 bg-dark/95 backdrop-blur-md"></div>
-        <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center p-0 md:p-6">
-            <div id="modalContent" class="bg-card w-full max-w-4xl h-[90vh] md:h-auto md:max-h-[90vh] rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden relative flex flex-col translate-y-full transition-transform duration-300">
-                </div>
         </div>
     </div>
 
-    <div id="steamModal" class="fixed inset-0 z-[70] hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-dark/90 backdrop-blur-sm" onclick="closeSteamModal()"></div>
-        <div class="bg-slate-900 w-full max-w-md rounded-3xl border border-slate-800 p-6 md:p-8 relative z-10 shadow-2xl">
-            <button onclick="closeSteamModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-            
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="w-12 h-12 bg-[#171a21] rounded-2xl flex items-center justify-center border border-slate-700 shadow-xl">
-                    <i class="fa-brands fa-steam text-[#66c0f4] text-2xl"></i>
+    <div id="steamModalOverlay" class="fixed inset-0 z-[110] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4" onclick="closeSteamModal(event)">
+        <div class="bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-steam-symbol text-accent text-xl"></i>
+                    <h3 class="text-white font-black text-lg" data-i18n="steamSyncTitle">Синхронізація Steam</h3>
                 </div>
-                <div>
-                    <h3 class="text-xl font-black text-white uppercase tracking-tight" data-i18n="steamTitle">Steam Sync</h3>
-                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">Beta Version</p>
-                </div>
+                <button onclick="closeSteamModal(null, true)" class="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="space-y-6">
+            <div class="p-5 space-y-4">
                 <div class="space-y-2">
-                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1" data-i18n="steamIdLabel">Введи свій Steam ID</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="steamIdInput" placeholder="76561198..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent transition">
-                        <button id="steamSyncRunBtn" class="bg-accent hover:bg-blue-600 text-white font-bold rounded-xl px-6 transition active:scale-95" data-i18n="steamSyncBtn">Go</button>
-                        <button id="steamSyncClearBtn" class="bg-slate-800 hover:bg-danger border border-slate-700 text-white rounded-xl px-4 py-3 transition" title="Clear"><i class="fa-solid fa-trash"></i></button>
-                    </div>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="steamIdLabel">SteamID64</label>
+                    <input id="steamIdInput" type="text" inputmode="numeric" placeholder="7656119..." class="w-full bg-slate-800/60 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-accent">
+                    <p class="text-xs text-slate-500" data-i18n="steamIdHint">Введи SteamID64 (17 цифр). Збережеться локально в браузері.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="steamSyncRunBtn" class="flex-1 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl py-3 transition" data-i18n="steamSyncRun">Синхронізувати</button>
+                    <button id="steamSyncClearBtn" class="bg-slate-800 hover:bg-slate-800/80 border border-slate-700 text-white rounded-xl px-4 py-3 transition" title="Clear"><i class="fa-solid fa-trash"></i></button>
                 </div>
 
                 <div id="steamSyncStatus" class="hidden">
@@ -226,12 +275,12 @@
                 </div>
 
                 <div class="text-xs text-slate-500">
-                    <span data-i18n="steamPrivacyNote">Примітка: дані беруться з Steam API через твій воркер. Досягнення/прогрес з’являться, коли додаси відповідні ключі.</span>
+                    <span data-i18n="steamPrivacyNote">Примітка: дані беруться з Steam API через твій воркер. Досягнення/прогрес з’являться, коли додаси відповідні ендпоїнти.</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="assets/app.js"></script>
 </body>
 </html>

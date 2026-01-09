@@ -1,0 +1,80 @@
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 10px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.nav-item.active { background-color: #3b82f6; color: white; }
+.nav-item.active i { color: white !important; }
+.mobile-nav-item.active { color: #3b82f6; }
+.lang-btn.active { color: white; text-decoration: underline; text-underline-offset: 4px; }
+
+.filter-select {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  outline: none;
+  min-width: 120px;
+}
+
+.kpi-card { background: rgba(2,6,23,0.35); border: 1px solid #1f2937; border-radius: 1rem; padding: 1rem; }
+.kpi-value { font-weight: 900; color: #fff; font-size: 1.5rem; line-height: 1.2; }
+.kpi-label { color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: .12em; margin-top: .25rem; }
+
+.steam-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  padding:.25rem .5rem;
+  border-radius:999px;
+  border:1px solid rgba(51,65,85,.8);
+  background: rgba(15,23,42,.55);
+  color:#e2e8f0;
+  font-size:.7rem;
+}
+
+.edition-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  padding:.3rem .6rem;
+  border-radius:999px;
+  border:1px solid rgba(51,65,85,.8);
+  background: rgba(30,41,59,.55);
+  color:#e2e8f0;
+  font-size:.75rem;
+}
+
+/* ✅ Mobile language select fix: readable + no glare */
+.mobile-lang-select{
+  background: rgba(30,41,59,.85);
+  border: 1px solid rgba(51,65,85,1);
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  outline: none;
+}
+.mobile-lang-select:focus{
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.25);
+}
+.mobile-lang-select option{
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* App loader spinner */
+.loader-spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  border: 4px solid rgba(148,163,184,.25);
+  border-top-color: #3b82f6;
+  animation: ps-spin .9s linear infinite;
+  box-shadow: 0 0 0 1px rgba(51,65,85,.35);
+}
+@keyframes ps-spin { to { transform: rotate(360deg); } }
